@@ -1,0 +1,52 @@
+version: "3.7"
+
+services:
+  mysql:
+    image: mysql
+    volumes:
+      - ./.docker/mysql/conf:/etc/mysql/conf.d
+      - ./volumes/mysql/dump:/docker-entrypoint-initdb.d
+      - ./volumes/mysql/data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    restart: unless-stopped
+    environment:
+      - TZ
+      - MYSQL_ROOT_PASSWORD
+      - MYSQL_DATABASE
+      - MYSQL_USER
+      - MYSQL_PASSWORD
+  nginx:
+    build: .docker/web
+    restart: unless-stopped
+    volumes:
+      - ./volumes/playsms/html:/var/www/html:ro
+      - ./volumes/nginx/includes:/etc/nginx/conf.d/includes/
+    ports:
+      - ${HTTP_PORT}:80
+  mailhog:
+    image: blueimp/mailhog
+    ports:
+      - ${MAILHOG_PORT}:8025
+  playsms:
+    build: .docker/app
+    volumes:
+      - ~/.composer:/root/.composer/
+      - ./.env:/var/www/.env
+      - ./volumes/playsms/data:/var/www/data
+      - ./volumes/playsms/html:/var/www/html
+    environment:
+      - ADMINPASSWORD
+      - DBUSER
+      - DBPASS
+      - DBNAME
+      - DBHOST
+      - DBPORT
+      - URLWEB
+      - PATHWEB
+      - PATHBIN
+      - PATHLOG
+      - PATHSTR
+      - PATHSRC
+      - PLAYSMS_WEB
+      - XDEBUG_CONFIG
