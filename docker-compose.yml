@@ -36,6 +36,7 @@ services:
       - ./volumes/playsms/data:/var/www/data
       - ./volumes/playsms/html:/var/www/html
     environment:
+      - TZ
       - ADMINPASSWORD
       - DBUSER
       - DBPASS
