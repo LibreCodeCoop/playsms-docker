@@ -29,7 +29,7 @@ if [ ! -f "index.php" ]; then
     chmod 664 $PATHLOG/playsms.log >/dev/null 2>&1
     touch $PATHLOG/audit.log >/dev/null 2>&1
     chmod 664 $PATHLOG/audit.log >/dev/null 2>&1
-    chown -R www-data $PATHBIN
+    chown -R www-data $PATHBIN $PATHLOG
     php /var/www/scripts/install.php
 fi
 export PLAYSMS_WEB="$PATHWEB"
