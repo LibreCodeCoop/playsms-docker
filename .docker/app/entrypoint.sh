@@ -33,6 +33,7 @@ if [ ! -f "index.php" ]; then
     php /var/www/scripts/install.php
 fi
 export PLAYSMS_WEB="$PATHWEB"
+sleep 5
 runuser -u www-data -- php $PATHBIN/playsmsd check
 runuser -u www-data -- php $PATHBIN/playsmsd restart
 runuser -u www-data -- php $PATHBIN/playsmsd status
