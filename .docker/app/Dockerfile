@@ -28,6 +28,12 @@ RUN chmod uga+x /usr/local/bin/install-php-extensions && sync \
     # pevent errors when try to create files at /var/www with user www-data
     && chown -R www-data /var/www
 
+# Workaround to make sure /usr/bin/php exists, some scripts expect it
+RUN PHP_PATH=$(which php) && \
+    if [ ! -f "/usr/bin/php" ] && [ -n "$PHP_PATH" ] && [ "$PHP_PATH" != "/usr/bin/php" ]; then \
+        ln -s /usr/local/bin/php /usr/bin/php; \
+    fi
+
 COPY config/php/* /usr/local/etc/php/conf.d/
 
 WORKDIR /var/www/html

@@ -8,10 +8,6 @@ groupmod --non-unique --gid "${HOST_GID}" www-data
 PHP_PATH=$(which php)
 
 if [ ! -f "index.php" ]; then
-    if [ ! -f "/usr/bin/php" ] && [ -n "$PHP_PATH" ] && [ "$PHP_PATH" != "/usr/bin/php" ]; then
-        ln -s /usr/local/bin/php /usr/bin/php
-    fi
-
     git clone --progress --single-branch --depth 1 --branch "${VERSION_PLAYSMS}" --recurse-submodules -j 4 https://github.com/playsms/playsms /tmp/playsms
     rsync -r /tmp/playsms/ ${PATHSRC}
     mkdir -p $PATHWEB $PATHLOG $PATHSRC $PATHBIN $PATHCONF $PATHLIB
