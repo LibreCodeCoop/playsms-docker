@@ -1,4 +1,4 @@
-FROM php:7.4-fpm
+FROM php:8.3-fpm
 
 RUN apt-get update
 
@@ -8,37 +8,35 @@ RUN apt-get install -y \
         procps \
         rsync \
         unzip \
-        && docker-php-ext-install zip
+    && mkdir -p /var/spool/cron/crontabs \
+    && echo '* * * * * /var/www/bin/playsmsd /var/www/etc/playsmsd.conf start' > /var/spool/cron/crontabs/www-data \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install MySQL
-RUN docker-php-ext-configure mysqli -with-mysqli=mysqlnd \
-    && docker-php-ext-configure pdo_mysql -with-pdo-mysql=mysqlnd \
-    && docker-php-ext-install pdo pdo_mysql mysqli
+# Install PHP extensions
+ADD https://github.com/mlocati/docker-php-extension-installer/releases/latest/download/install-php-extensions /usr/local/bin/
+RUN chmod uga+x /usr/local/bin/install-php-extensions && sync \
+    && install-php-extensions \
+    gd \
+    mysqli \
+    pdo \
+    pdo_mysql \
+    pdo_pgsql \
+    xdebug \
+    zip \
+    @composer \
+    && rm /usr/local/bin/install-php-extensions \
+    # pevent errors when try to create files at /var/www with user www-data
+    && chown -R www-data /var/www
 
-# Install GD
-RUN apt-get install -y \
-        libfreetype6-dev \
-        libjpeg62-turbo-dev \
-        libpng-dev \
-        libxpm-dev
+# Workaround to make sure /usr/bin/php exists, some scripts expect it
+RUN PHP_PATH=$(which php) && \
+    if [ ! -f "/usr/bin/php" ] && [ -n "$PHP_PATH" ] && [ "$PHP_PATH" != "/usr/bin/php" ]; then \
+        ln -s /usr/local/bin/php /usr/bin/php; \
+    fi
 
-RUN docker-php-ext-configure gd --with-freetype=/usr/include/ \
-                                --with-jpeg=/usr/include/ \
-                                --with-xpm=/usr/include/ \
-                                --enable-gd-jis-conv \
-    && docker-php-ext-install gd
-
-
-# Install xdebug
-RUN pecl install xdebug-3.0.4 \
-    && docker-php-ext-enable xdebug
-
-COPY --from=composer /usr/bin/composer /usr/bin/composer
-
-COPY config/php.ini /usr/local/etc/php/conf.d/
+COPY config/php/* /usr/local/etc/php/conf.d/
 
 WORKDIR /var/www/html
 RUN mkdir /var/www/scripts
-COPY entrypoint.sh /var/www/scripts/entrypoint.sh
-COPY install.php /var/www/scripts/install.php
+COPY scripts/* /var/www/scripts/
 ENTRYPOINT [ "bash", "/var/www/scripts/entrypoint.sh" ]
